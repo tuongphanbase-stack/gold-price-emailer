@@ -2728,10 +2728,11 @@ def cmd_recap_generate(period):
 def cmd_recap_send():
     sender = os.environ.get("GMAIL_ADDRESS")
     app_password = os.environ.get("GMAIL_APP_PASSWORD")
-    recipient = os.environ.get("GOLD_RECIPIENT")
+    # GOLD_RECIPIENT is optional: without it the email goes to the sender's own inbox.
+    recipient = os.environ.get("GOLD_RECIPIENT") or sender
 
     missing = [name for name, val in [
-        ("GMAIL_ADDRESS", sender), ("GMAIL_APP_PASSWORD", app_password), ("GOLD_RECIPIENT", recipient),
+        ("GMAIL_ADDRESS", sender), ("GMAIL_APP_PASSWORD", app_password),
     ] if not val]
     if missing:
         print(f"Missing required environment variables: {', '.join(missing)}", file=sys.stderr)
@@ -2782,12 +2783,12 @@ def cmd_recap_send():
 def cmd_send():
     sender = os.environ.get("GMAIL_ADDRESS")
     app_password = os.environ.get("GMAIL_APP_PASSWORD")
-    recipient = os.environ.get("GOLD_RECIPIENT")
+    # GOLD_RECIPIENT is optional: without it the email goes to the sender's own inbox.
+    recipient = os.environ.get("GOLD_RECIPIENT") or sender
 
     missing = [name for name, val in [
         ("GMAIL_ADDRESS", sender),
         ("GMAIL_APP_PASSWORD", app_password),
-        ("GOLD_RECIPIENT", recipient),
     ] if not val]
     if missing:
         print(f"Missing required environment variables: {', '.join(missing)}", file=sys.stderr)

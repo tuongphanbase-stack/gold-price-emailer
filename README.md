@@ -203,10 +203,11 @@ the silver summary table) and it'll start using that instead.
 
 5. **Add your secrets to the repo** (this keeps your email/password out of the code):
    - In your repo: Settings -> Secrets and variables -> Actions -> "New repository secret"
-   - Add three secrets:
+   - Add these secrets:
      - `GMAIL_ADDRESS` = your Gmail address
      - `GMAIL_APP_PASSWORD` = the 16-character app password from step 4
-     - `GOLD_RECIPIENT` = the email address that should receive the price update
+     - `GOLD_RECIPIENT` (optional) = the email address that should receive the
+       price update; without it the email goes to `GMAIL_ADDRESS` itself
 
 6. **Test it manually**
    - Go to the "Actions" tab in your repo
