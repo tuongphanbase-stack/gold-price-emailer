@@ -1,0 +1,61 @@
+name: Send Gold Recap
+on:
+  schedule:
+    # Weekly: Monday 00:07 UTC (07:07 Vietnam time).
+    - cron: "7 0 * * 1"
+    # Monthly: the 1st of the month, 00:17 UTC.
+    - cron: "17 0 1 * *"
+  workflow_dispatch:
+    inputs:
+      period:
+        description: "Recap period"
+        type: choice
+        options: [weekly, monthly]
+        default: weekly
+permissions:
+  contents: read   # only reads the price history the main workflow saves
+jobs:
+  send-gold-recap:
+    runs-on: ubuntu-latest
+    env:
+      # Without the Gmail secrets, the Send step is skipped (with a warning)
+      # instead of failing the run every time.
+      HAS_GMAIL: ${{ secrets.GMAIL_ADDRESS != '' && secrets.GMAIL_APP_PASSWORD != '' }}
+      PERIOD: ${{ github.event.inputs.period || (github.event.schedule == '17 0 1 * *' && 'monthly') || 'weekly' }}
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip certifi
+          pip install -r requirements.txt
+      - name: Fetch price history
+        run: |
+          mkdir -p state
+          if git ls-remote --exit-code --heads origin gold-price-state >/dev/null 2>&1; then
+            git fetch --depth 1 origin gold-price-state
+            git show origin/gold-price-state:state/price_history.json > state/price_history.json 2>/dev/null \
+              || rm -f state/price_history.json
+          fi
+          if [ ! -f state/price_history.json ]; then
+            echo "::warning::No price history yet - the Send Gold Price workflow has to run at least once first."
+          fi
+      - name: Generate recap
+        env:
+          TIMEZONE: "Asia/Ho_Chi_Minh"
+          PRICE_HISTORY_FILE: "state/price_history.json"
+        run: python gold_price_emailer.py recap-generate "$PERIOD"
+      - name: Warn that the Gmail secrets are missing
+        if: env.HAS_GMAIL != 'true'
+        run: echo "::warning::GMAIL_ADDRESS / GMAIL_APP_PASSWORD secrets are not set, so no email was sent. Add them in Settings -> Secrets and variables -> Actions."
+      - name: Send recap
+        if: env.HAS_GMAIL == 'true'
+        env:
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          GOLD_RECIPIENT: ${{ secrets.GOLD_RECIPIENT }}
+        run: python gold_price_emailer.py recap-send
