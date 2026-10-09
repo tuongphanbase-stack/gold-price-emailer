@@ -115,7 +115,7 @@ WORLD_GOLD_URL = os.environ.get("WORLD_GOLD_URL", "https://giavang.org/the-gioi/
 # Threshold for the "big move" alerts section: an item is flagged if any
 # available change (silver's same-day source figure, or any history-based
 # period) has an absolute percent move at or above this.
-ALERT_THRESHOLD_PCT = float(os.environ.get("ALERT_THRESHOLD_PCT", "3.0"))
+ALERT_THRESHOLD_PCT = float(os.environ.get("ALERT_THRESHOLD_PCT") or "3.0")
 
 VCB_RATE_URL = os.environ.get("VCB_RATE_URL", "https://tygiausd.org/nganhang/vietcombank")
 
